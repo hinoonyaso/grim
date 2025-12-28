@@ -14,8 +14,10 @@ This repository contains a ROS 2 package skeleton and PyQt5 GUI for the Doosan 
    colcon build
    source install/setup.bash
    ```
-3. Launch the GUI:
+3. Launch the GUI (from a new shell **after** sourcing `install/setup.bash`):
    ```bash
+   cd ros2_ws
+   source install/setup.bash  # repeat this in every new terminal
    ros2 run my_ros2_assignment my_node
    ```
 
