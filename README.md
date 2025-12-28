@@ -8,12 +8,14 @@ This repository contains a ROS 2 package skeleton and PyQt5 GUI for the Doosan 
 
 ## Running
 1. Install ROS 2 Humble (or Foxy) and PyQt5 on Ubuntu 22.04/20.04.
-2. Build the workspace:
+2. Build the workspace **from inside `ros2_ws`** (if you already tried a build, remove any old `build/`, `install/`, and `log/` folders first):
    ```bash
    cd ros2_ws
-   colcon build
+   rm -rf build install log  # optional cleanup if a previous build failed
+   colcon build --symlink-install
    source install/setup.bash
    ```
+   The installed entry point will be available at `install/my_ros2_assignment/lib/my_ros2_assignment/my_node` if you want to verify it.
 3. Launch the GUI (from a new shell **after** sourcing `install/setup.bash`):
    ```bash
    cd ros2_ws
