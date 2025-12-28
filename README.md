@@ -16,6 +16,7 @@ This repository contains a ROS 2 package skeleton and PyQt5 GUI for the Doosan 
    source install/setup.bash
    ```
    The installed entry point will be available at `install/my_ros2_assignment/lib/my_ros2_assignment/my_node` if you want to verify it.
+   If you see a warning about `CATKIN_INSTALL_INTO_PREFIX_ROOT` during `colcon build`, it comes from an environment variable and is harmless; you can `unset CATKIN_INSTALL_INTO_PREFIX_ROOT` before building to silence it.
 3. Launch the GUI (from a new shell **after** sourcing `install/setup.bash`):
    ```bash
    cd ros2_ws
