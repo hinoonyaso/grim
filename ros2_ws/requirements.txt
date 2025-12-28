@@ -1,0 +1,3 @@
+ros-humble-desktop
+ros-humble-moveit
+python3-pyqt5
