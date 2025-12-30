@@ -44,11 +44,11 @@ The GUI uses a separate thread to run ROS 2, lets you queue targets, and updates
    colcon build
    source install/setup.bash
    ```
-2. Launch your preferred Doosan MoveIt bringup (consult the cloned repo for the exact launch file) and start RViz2:
+2. Launch the Doosan E0509 MoveIt bringup and RViz2. In the official `doosan-robot2` repo the package names follow the pattern `dsr_moveit_config_<model>`, so for the E0509 model the tested command is:
    ```bash
-   # Example; adjust if your package/launch name differs
-   ros2 launch doosan_robot2_moveit2 bringup.launch.py use_rviz:=true
+   ros2 launch dsr_moveit_config_e0509 moveit.launch.py use_rviz:=true
    ```
+   If you are using a different model or branch, run `ros2 pkg list | grep dsr_moveit_config` to confirm the package name before launching.
 3. Run the GUI node from this package. The queued targets will broadcast `DisplayTrajectory` and `JointTrajectory` messages so RViz shows the path and controllers can follow it.
 
 ### Integrating Gazebo
