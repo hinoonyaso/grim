@@ -4,10 +4,13 @@ from typing import List, Optional
 import numpy as np
 import rclpy
 from geometry_msgs.msg import Point
+from moveit_msgs.msg import DisplayTrajectory, RobotState as MoveItRobotState, RobotTrajectory
 from qtpy import QtCore, QtWidgets
 from rclpy.executors import SingleThreadedExecutor
 from rclpy.node import Node
+from sensor_msgs.msg import JointState
 from std_msgs.msg import String
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 
 
 @dataclass
@@ -21,7 +24,7 @@ class MotionTarget:
 
 
 @dataclass
-class RobotState:
+class RobotSimState:
     joint_positions: List[float] = field(default_factory=lambda: [0.0] * 6)
     ee_position: np.ndarray = field(default_factory=lambda: np.zeros(3))
 
@@ -31,8 +34,14 @@ class RobotControlNode(Node):
 
     def __init__(self) -> None:
         super().__init__('doosan_e0509_gui_sim')
-        self.state = RobotState()
+        self.state = RobotSimState()
+        self.joint_names = [f'joint{i}' for i in range(1, 7)]
         self._status_pub = self.create_publisher(String, '/sim/status', 10)
+        self._joint_state_pub = self.create_publisher(JointState, '/joint_states', 50)
+        self._trajectory_pub = self.create_publisher(
+            JointTrajectory, '/doosan_arm_controller/joint_trajectory', 10
+        )
+        self._display_traj_pub = self.create_publisher(DisplayTrajectory, '/display_planned_path', 10)
         self._status_pub.publish(String(data='Robot control node initialized.'))
 
     def update_state(self, target: MotionTarget, progress: float) -> None:
@@ -45,6 +54,7 @@ class RobotControlNode(Node):
         self.state.joint_positions = self.ik_placeholder(new_pose)
         message = f"Moving to ({new_pose[0]:.3f}, {new_pose[1]:.3f}, {new_pose[2]:.3f})"
         self._status_pub.publish(String(data=message))
+        self.publish_joint_state()
 
     def ik_placeholder(self, ee_position: np.ndarray) -> List[float]:
         """A placeholder inverse kinematics calculation.
@@ -53,6 +63,45 @@ class RobotControlNode(Node):
         """
         scales = np.linspace(0.5, 1.0, num=6)
         return [float(ee_position.mean() * scale) for scale in scales]
+
+    def publish_joint_state(self) -> None:
+        """Publish the current joint state for RViz/Gazebo."""
+
+        msg = JointState()
+        msg.name = self.joint_names
+        msg.position = list(self.state.joint_positions)
+        self._joint_state_pub.publish(msg)
+
+    def publish_preview_trajectory(
+        self, start: List[float], goal: List[float], duration: float = 5.0
+    ) -> JointTrajectory:
+        """Publish a simple joint-space trajectory that RViz and controllers can replay."""
+
+        traj = JointTrajectory()
+        traj.joint_names = self.joint_names
+
+        start_point = JointTrajectoryPoint()
+        start_point.positions = start
+        start_point.time_from_start.sec = 0
+        traj.points.append(start_point)
+
+        goal_point = JointTrajectoryPoint()
+        goal_point.positions = goal
+        goal_point.time_from_start.sec = int(duration)
+        traj.points.append(goal_point)
+
+        self._trajectory_pub.publish(traj)
+
+        display = DisplayTrajectory()
+        display.model_id = 'doosan_e0509'
+        display.trajectory_start = MoveItRobotState()
+        display.trajectory_start.joint_state.name = self.joint_names
+        display.trajectory_start.joint_state.position = start
+        robot_traj = RobotTrajectory()
+        robot_traj.joint_trajectory = traj
+        display.trajectory.append(robot_traj)
+        self._display_traj_pub.publish(display)
+        return traj
 
 
 class ROSExecutorThread(QtCore.QThread):
@@ -94,6 +143,12 @@ class MotionWorker(QtCore.QThread):
                 self.status_changed.emit('Motion cancelled by user.')
                 return
             self.status_changed.emit('Executing target...')
+            target_pose = np.array([target.point.x, target.point.y, target.point.z])
+            start_joints = self.node.state.joint_positions.copy()
+            goal_joints = self.node.ik_placeholder(
+                self.node.state.ee_position + target_pose if target.relative else target_pose
+            )
+            self.node.publish_preview_trajectory(start_joints, goal_joints, duration=5.0)
             steps = max(5, int(target.velocity * 100))
             for i in range(steps + 1):
                 if self._stop_requested:
