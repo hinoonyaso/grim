@@ -1,0 +1,10 @@
+# APT dependencies for Ubuntu 22.04 + ROS 2 Humble
+ros-humble-desktop
+ros-humble-moveit
+ros-humble-ros2-control
+ros-humble-ros2-controllers
+ros-humble-ros2launch
+ros-humble-ament-cmake
+ros-humble-rviz2
+python3-pyqt5
+python3-qtpy
