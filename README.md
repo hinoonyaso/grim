@@ -16,9 +16,10 @@ ros2_ws/
 ```
 
 ## Running (Ubuntu 22.04 + ROS 2 Humble)
-1. Install apt dependencies:
+1. Install apt dependencies (the requirements file contains only package names, so `xargs -a` works without extra filtering):
    ```bash
    cd ros2_ws
+   sudo apt-get update
    xargs -a requirements.txt sudo apt-get install -y
    ```
 2. Build the workspace:
