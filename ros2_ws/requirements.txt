@@ -1,0 +1,11 @@
+ros-humble-desktop
+ros-humble-moveit
+ros-humble-moveit-msgs
+ros-humble-ros2-control
+ros-humble-ros2-controllers
+ros-humble-ros2launch
+ros-humble-ament-cmake
+ros-humble-rviz2
+ros-humble-gazebo-ros-pkgs
+python3-pyqt5
+python3-qtpy
