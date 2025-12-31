@@ -32,7 +32,7 @@ ros2_ws/
    ros2 run my_ros2_assignment my_node
    ```
 
-The GUI uses a separate thread to run ROS 2, lets you queue targets, and updates simulated joint angles and base-frame pose in real time. It also publishes `/joint_states`, `/display_planned_path` (MoveIt/RViz) and `/doosan_arm_controller/joint_trajectory` so Gazebo or RViz can mirror the motion.
+ The GUI uses a separate thread to run ROS 2, lets you queue targets, and updates simulated joint angles and base-frame pose in real time. It publishes `/joint_states`, `/display_planned_path` (MoveIt/RViz) and a configurable `FollowJointTrajectory` topic so Gazebo or RViz can mirror the motion.
 
 ### Integrating MoveIt 2 + RViz
 1. Clone the Doosan E-series MoveIt 2 support into the workspace alongside this package (example):
@@ -49,7 +49,10 @@ The GUI uses a separate thread to run ROS 2, lets you queue targets, and updates
    ros2 launch dsr_moveit_config_e0509 moveit.launch.py use_rviz:=true
    ```
    If you are using a different model or branch, run `ros2 pkg list | grep dsr_moveit_config` to confirm the package name before launching.
-3. Run the GUI node from this package. The queued targets will broadcast `DisplayTrajectory` and `JointTrajectory` messages so RViz shows the path and controllers can follow it.
+3. Run the GUI node from this package. The queued targets will broadcast `DisplayTrajectory` and `JointTrajectory` messages so RViz shows the path and controllers can follow it. The controller topic defaults to the Doosan MoveIt2 scaled controller (`/dsr01/scaled_joint_trajectory_controller/joint_trajectory`), but you can override it to match your launch setup:
+   ```bash
+   ros2 run my_ros2_assignment my_node --ros-args -p controller_topic:=/doosan_arm_controller/joint_trajectory
+   ```
 
 ### Integrating Gazebo
 1. Start a Gazebo simulation with the Doosan E0509 model and a `FollowJointTrajectory`-compatible controller (see the `doosan-robot2` gazebo launch files for the exact command). Ensure the controller subscribes to `/doosan_arm_controller/joint_trajectory` or update the topic in `my_node.py` if your setup uses a different controller name.

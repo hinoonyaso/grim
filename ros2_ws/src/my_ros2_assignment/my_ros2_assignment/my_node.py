@@ -36,11 +36,13 @@ class RobotControlNode(Node):
         super().__init__('doosan_e0509_gui_sim')
         self.state = RobotSimState()
         self.joint_names = [f'joint{i}' for i in range(1, 7)]
+        self.declare_parameter(
+            'controller_topic', '/dsr01/scaled_joint_trajectory_controller/joint_trajectory'
+        )
+        controller_topic = self.get_parameter('controller_topic').get_parameter_value().string_value
         self._status_pub = self.create_publisher(String, '/sim/status', 10)
         self._joint_state_pub = self.create_publisher(JointState, '/joint_states', 50)
-        self._trajectory_pub = self.create_publisher(
-            JointTrajectory, '/doosan_arm_controller/joint_trajectory', 10
-        )
+        self._trajectory_pub = self.create_publisher(JointTrajectory, controller_topic, 10)
         self._display_traj_pub = self.create_publisher(DisplayTrajectory, '/display_planned_path', 10)
         self._status_pub.publish(String(data='Robot control node initialized.'))
 
@@ -68,6 +70,7 @@ class RobotControlNode(Node):
         """Publish the current joint state for RViz/Gazebo."""
 
         msg = JointState()
+        msg.header.stamp = self.get_clock().now().to_msg()
         msg.name = self.joint_names
         msg.position = list(self.state.joint_positions)
         self._joint_state_pub.publish(msg)
