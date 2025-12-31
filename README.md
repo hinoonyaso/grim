@@ -49,9 +49,13 @@ ros2_ws/
    ros2 launch dsr_moveit_config_e0509 moveit.launch.py use_rviz:=true
    ```
    If you are using a different model or branch, run `ros2 pkg list | grep dsr_moveit_config` to confirm the package name before launching.
-3. Run the GUI node from this package. The queued targets will broadcast `DisplayTrajectory` and `JointTrajectory` messages so RViz shows the path and controllers can follow it. The controller topic defaults to the Doosan MoveIt2 scaled controller (`/dsr01/scaled_joint_trajectory_controller/joint_trajectory`), but you can override it to match your launch setup:
+3. Run the GUI node from this package. The queued targets will broadcast `DisplayTrajectory` and `JointTrajectory` messages so RViz shows the path and controllers can follow it. The controller topic defaults to the Doosan MoveIt2 scaled controller (`/dsr01/scaled_joint_trajectory_controller/joint_trajectory`) and the MoveIt model id defaults to `e0509`. Override them (and the joint names if your MoveIt config uses different names) to match your bringup:
    ```bash
-   ros2 run my_ros2_assignment my_node --ros-args -p controller_topic:=/doosan_arm_controller/joint_trajectory
+   ros2 run my_ros2_assignment my_node \
+     --ros-args \
+     -p controller_topic:=/doosan_arm_controller/joint_trajectory \
+     -p robot_model_id:=e0509 \
+     -p joint_names:="['joint1','joint2','joint3','joint4','joint5','joint6']"
    ```
 
 ### Integrating Gazebo

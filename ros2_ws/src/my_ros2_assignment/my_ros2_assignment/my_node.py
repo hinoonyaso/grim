@@ -25,7 +25,7 @@ class MotionTarget:
 
 @dataclass
 class RobotSimState:
-    joint_positions: List[float] = field(default_factory=lambda: [0.0] * 6)
+    joint_positions: List[float] = field(default_factory=list)
     ee_position: np.ndarray = field(default_factory=lambda: np.zeros(3))
 
 
@@ -36,10 +36,21 @@ class RobotControlNode(Node):
         super().__init__('doosan_e0509_gui_sim')
         self.state = RobotSimState()
         self.joint_names = [f'joint{i}' for i in range(1, 7)]
+        self.declare_parameter('robot_model_id', 'e0509')
+        self.declare_parameter('joint_names', self.joint_names)
         self.declare_parameter(
             'controller_topic', '/dsr01/scaled_joint_trajectory_controller/joint_trajectory'
         )
+        self.joint_names = list(
+            self.get_parameter('joint_names').get_parameter_value().string_array_value
+        )
+        self.dof = len(self.joint_names)
+        if not self.state.joint_positions:
+            self.state.joint_positions = [0.0] * self.dof
         controller_topic = self.get_parameter('controller_topic').get_parameter_value().string_value
+        self.robot_model_id = (
+            self.get_parameter('robot_model_id').get_parameter_value().string_value
+        )
         self._status_pub = self.create_publisher(String, '/sim/status', 10)
         self._joint_state_pub = self.create_publisher(JointState, '/joint_states', 50)
         self._trajectory_pub = self.create_publisher(JointTrajectory, controller_topic, 10)
@@ -63,7 +74,7 @@ class RobotControlNode(Node):
 
         MoveIt or the Doosan SDK should replace this logic in a real deployment.
         """
-        scales = np.linspace(0.5, 1.0, num=6)
+        scales = np.linspace(0.5, 1.0, num=self.dof)
         return [float(ee_position.mean() * scale) for scale in scales]
 
     def publish_joint_state(self) -> None:
@@ -96,7 +107,7 @@ class RobotControlNode(Node):
         self._trajectory_pub.publish(traj)
 
         display = DisplayTrajectory()
-        display.model_id = 'doosan_e0509'
+        display.model_id = self.robot_model_id
         display.trajectory_start = MoveItRobotState()
         display.trajectory_start.joint_state.name = self.joint_names
         display.trajectory_start.joint_state.position = start
