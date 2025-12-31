@@ -46,16 +46,17 @@ ros2_ws/
    ```
 2. Launch the Doosan E0509 MoveIt bringup and RViz2. In the official `doosan-robot2` repo the package names follow the pattern `dsr_moveit_config_<model>`, so for the E0509 model the tested command is:
    ```bash
-   ros2 launch dsr_moveit_config_e0509 moveit.launch.py use_rviz:=true
+   ros2 launch dsr_moveit_config_e0509 start.launch.py
    ```
    If you are using a different model or branch, run `ros2 pkg list | grep dsr_moveit_config` to confirm the package name before launching.
 3. Run the GUI node from this package. The queued targets will broadcast `DisplayTrajectory` and `JointTrajectory` messages so RViz shows the path and controllers can follow it. The controller topic defaults to the Doosan MoveIt2 scaled controller (`/dsr01/scaled_joint_trajectory_controller/joint_trajectory`) and the MoveIt model id defaults to `e0509`. Override them (and the joint names if your MoveIt config uses different names) to match your bringup:
    ```bash
-   ros2 run my_ros2_assignment my_node \
-     --ros-args \
-     -p controller_topic:=/doosan_arm_controller/joint_trajectory \
-     -p robot_model_id:=e0509 \
-     -p joint_names:="['joint1','joint2','joint3','joint4','joint5','joint6']"
+   ros2 run my_ros2_assignment my_node
+     --ros-args
+     -p controller_topic:=/dsr_moveit_controller/joint_trajectory
+     -p robot_model_id:=e0509
+     -p joint_names:="['joint_1','joint_2','joint_3','joint_4','joint_5','joint_6']"
+
    ```
 
 ### Integrating Gazebo
